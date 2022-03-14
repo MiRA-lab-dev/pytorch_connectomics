@@ -1,0 +1,54 @@
+SYSTEM:
+  NUM_GPUS: 4
+  NUM_CPUS: 8
+MODEL:
+  ARCHITECTURE: unet_3d
+  BLOCK_TYPE: residual_se
+  INPUT_SIZE: [8, 256, 256]
+  OUTPUT_SIZE: [8, 256, 256]
+  IN_PLANES: 1
+  OUT_PLANES: 4
+  LOSS_OPTION: [["WeightedBCEWithLogitsLoss"], ["WeightedBCEWithLogitsLoss", "DiceLoss"]]
+  LOSS_WEIGHT: [[1.0], [1.0, 0.5]]
+  LABEL_EROSION: 0
+  # Currently for multi-class semantic segmentation, only one
+  # target option is supported. Using other options with semantic
+  # segmentation will be supported in future release.
+  TARGET_OPT: ["2", "4-1-1"]
+  WEIGHT_OPT: [ [ "1" ], [ "1", "0" ] ]
+  OUTPUT_ACT: [ [ "none" ], [ "none", "sigmoid" ] ]
+DATASET:
+  IMAGE_NAME: 'train-raw.tif'
+  LABEL_NAME: 'train-label.tif'
+  INPUT_PATH: '../datasets/drosophila-mito'
+  OUTPUT_PATH: '../outputs/drosophila-mito-aff/'
+  VAL_IMAGE_NAME: 'val-raw.tif'
+  VAL_LABEL_NAME: 'val-label.tif'
+  PAD_SIZE: [4, 128, 128]
+  #DATA_SCALE: [1, 0.5, 0.5]
+  DO_CHUNK_TITLE: 0
+  DATA_CHUNK_NUM: [ 4, 1, 1 ]
+  DATA_CHUNK_ITER: 0
+SOLVER:
+  LR_SCHEDULER_NAME: "WarmupMultiStepLR"
+  BASE_LR: 0.01
+  ITERATION_STEP: 1
+  ITERATION_SAVE: 3000
+  ITERATION_TOTAL: 500000
+  SAMPLES_PER_BATCH: 24
+  STEPS: (40000, 45000)
+INFERENCE:
+  IMAGE_NAME: 'test-raw.tif'    #'../configs/drosophila.json'
+  OUTPUT_PATH: '../outputs/drosophila-mito-aff/test'
+  OUTPUT_ACT: ["sigmoid", "sigmoid"]
+  AUG_MODE: 'mean'
+  AUG_NUM: 4
+  OUTPUT_NAME: 'dro_mito_pred_24000.h5'
+  STRIDE: [4, 128, 128]
+  SAMPLES_PER_BATCH: 12
+  INPUT_SIZE: [8, 256, 256]
+  OUTPUT_SIZE: [8, 256, 256]
+  PAD_SIZE: [4, 128, 128]
+#  PAD_SIZE: [0, 0, 0]
+MONITOR:
+  ITERATION_NUM: [20, 200]
